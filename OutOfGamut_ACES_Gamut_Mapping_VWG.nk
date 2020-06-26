@@ -1,0 +1,380 @@
+#! C:/Program Files/Nuke11.1v1/nuke-11.1.1.dll -nx
+version 11.1 v1
+define_window_layout_xml {<?xml version="1.0" encoding="UTF-8"?>
+<layout version="1.0">
+    <window x="5751" y="-79" w="1920" h="1141" maximized="1" screen="2">
+        <splitter orientation="1">
+            <split size="46"/>
+            <dock id="" hideTitles="1" activePageId="Toolbar.1">
+                <page id="Toolbar.1"/>
+            </dock>
+            <split size="1251" stretch="1"/>
+            <splitter orientation="2">
+                <split size="639"/>
+                <dock id="" activePageId="Viewer.1">
+                    <page id="Viewer.1"/>
+                </dock>
+                <split size="450"/>
+                <dock id="" activePageId="DAG.1" focus="true">
+                    <page id="DAG.1"/>
+                    <page id="Curve Editor.1"/>
+                    <page id="DopeSheet.1"/>
+                </dock>
+            </splitter>
+            <split size="615"/>
+            <dock id="" activePageId="Properties.1">
+                <page id="Properties.1"/>
+                <page id="uk.co.thefoundry.backgroundrenderview.1"/>
+            </dock>
+        </splitter>
+    </window>
+</layout>
+}
+Root {
+ inputs 0
+ name C:/Users/kwheatle/source/NukeSnippets/OutOfGamut_ACES_Gamut_Mapping_VWG.nk
+ format "2048 1556 0 0 2048 1556 1 2K_Super_35(full-ap)"
+ proxy_type scale
+ proxy_format "1024 778 0 0 1024 778 1 1K_Super_35(full-ap)"
+ colorManagement Nuke
+ workingSpaceLUT linear
+ monitorLut sRGB
+ int8Lut sRGB
+ int16Lut sRGB
+ logLut Cineon
+ floatLut linear
+}
+Read {
+ inputs 0
+ file C:/Users/kwheatle/Downloads/A009C002_190210_R0EI_Alexa_LogCWideGamut.exr
+ format "1024 659 0 0 1024 659 1 "
+ origset true
+ name Read10
+ xpos 326
+ ypos -387
+}
+ColorMatrix {
+ matrix {
+     {1.451439316 -0.2365107469 -0.2149285693}
+     {-0.0765537733 1.1762297 -0.0996759265}
+     {0.0083161484 -0.0060324498 0.9977163014}
+   }
+ name ACES2065-1_to_ACEScg2
+ xpos 326
+ ypos -301
+}
+Dot {
+ name Dot3
+ xpos 360
+ ypos -243
+}
+Constant {
+ inputs 0
+ channels rgb
+ format "512 512 0 0 512 512 1 square_512"
+ name Constant2
+ xpos 115
+ ypos -422
+}
+Expression {
+ expr0 x/(width-1)
+ expr1 y/(height-1)
+ name LM
+ xpos 115
+ ypos -350
+}
+Expression {
+ expr2 (1-r+1-g)
+ name Expression1
+ xpos 115
+ ypos -324
+}
+Expression {
+ expr0 r<0?0:r>1?1:r
+ expr1 g<0?0:g>1?1:g
+ expr2 b<0?0:b>1?1:b
+ name Expression5
+ xpos 115
+ ypos -298
+}
+ColorWheel {
+ inputs 0
+ name ColorWheel1
+ xpos -45
+ ypos -397
+}
+Colorspace {
+ illuminant_in ACES
+ primary_in ACES
+ primary_out Rec.2020
+ name Colorspace1
+ xpos -45
+ ypos -305
+}
+Dot {
+ name Dot2
+ xpos -11
+ ypos -258
+}
+Constant {
+ inputs 0
+ channels rgb
+ format "512 512 0 0 512 512 1 square_512"
+ name Constant1
+ xpos -230
+ ypos -419
+}
+Expression {
+ expr0 x/(width-1)
+ expr1 y/(height-1)
+ name RG
+ xpos -230
+ ypos -347
+}
+Expression {
+ expr0 r
+ expr1 g
+ expr2 1-r-g
+ name Expression2
+ xpos -230
+ ypos -321
+}
+Expression {
+ expr0 b<0?0:b>1?1:r
+ expr1 b<0?0:b>1?1:g
+ expr2 b<0?0:b>1?1:b
+ name Expression3
+ xpos -230
+ ypos -295
+}
+Colorspace {
+ primary_out Rec.2020
+ name Colorspace2
+ xpos -230
+ ypos -269
+ disable true
+}
+Switch {
+ inputs 4
+ name Switch1
+ xpos -45
+ ypos -201
+}
+Group {
+ name OUCHOfGamutvisualiser
+ xpos -45
+ ypos -84
+ addUserKnob {20 User}
+ addUserKnob {6 sat_weights_panelDropped l "panel dropped state" -STARTLINE +HIDDEN}
+ addUserKnob {4 mask_method l "Mask Method" t "Use either a simple threshold on the gamut boundary,\n\nOR\n\nUse the RGB ratios to outline the limits" M {"Gamut Boundary" "RGB Ratios" "RGB Ratios (Full)"}}
+ mask_method "RGB Ratios"
+ addUserKnob {18 mask_threshold R -0.1 0.1}
+ mask_threshold 0.05
+ addUserKnob {6 mask_threshold_panelDropped l "panel dropped state" -STARTLINE +HIDDEN}
+ addUserKnob {6 mask_threshold_panelDropped_1 l "panel dropped state" -STARTLINE +HIDDEN}
+ addUserKnob {6 mask_threshold_panelDropped_1_1 l "panel dropped state" -STARTLINE +HIDDEN}
+ addUserKnob {6 ratio_boundary_panelDropped l "panel dropped state" -STARTLINE +HIDDEN}
+ ratio_boundary_panelDropped true
+ addUserKnob {18 ratio_boundary l "Ratio Boundary"}
+ ratio_boundary {0.9 0.83 0.9}
+ addUserKnob {6 ratio_boundary_panelDropped l "panel dropped state" -STARTLINE +HIDDEN}
+ addUserKnob {6 ratio_boundary_panelDropped_1 l "panel dropped state" -STARTLINE +HIDDEN}
+ addUserKnob {4 output_type t "Choose what to output:\n\nMask wil output a simple mask of the pixels\n\nMatte will show those pixels selected\n\ndesaturation will leave coloured those selected pixels and desaturate the rest" M {Mask Matte Desaturation ""}}
+ output_type Desaturation
+ addUserKnob {6 reverse l Reverse -STARTLINE}
+ addUserKnob {20 details l Detaills n 1}
+ addUserKnob {18 sat_weights l "Saturation Weights" t "Used to determine the saturation weights of RGB\n\n 0.2722287  0.6740818  0.0536895\n"}
+ sat_weights {0.2722287 0.6740818 0.0536895}
+ addUserKnob {6 sat_weights_panelDropped l "panel dropped state" -STARTLINE +HIDDEN}
+ addUserKnob {6 sat_weights_panelDropped_1 l "panel dropped state" -STARTLINE +HIDDEN}
+ addUserKnob {20 endGroup n -1}
+}
+ Input {
+  inputs 0
+  name Input1
+  xpos 0
+  ypos -64
+ }
+ Dot {
+  name Dot4
+  xpos 34
+  ypos 8
+ }
+set N9ed2a700 [stack 0]
+ Dot {
+  name Dot2
+  xpos 166
+  ypos 8
+ }
+set N9ed2a380 [stack 0]
+ Dot {
+  name Dot9
+  xpos 296
+  ypos 8
+ }
+set N9ed2a000 [stack 0]
+ Expression {
+  channel0 rgb
+  expr0 max(r,g,b)
+  channel1 {-rgba.red -rgba.green -rgba.blue none}
+  channel2 {-rgba.red -rgba.green -rgba.blue none}
+  name Expression5
+  xpos 262
+  ypos 56
+ }
+set Nb1d57c00 [stack 0]
+push $Nb1d57c00
+push $N9ed2a000
+ Dot {
+  name Dot8
+  xpos 395
+  ypos 8
+ }
+set Nb1d57500 [stack 0]
+ Merge2 {
+  inputs 2
+  operation minus
+  name Merge3
+  xpos 361
+  ypos 56
+ }
+ MergeExpression {
+  inputs 2
+  expr0 "isnan(Br/Ar) ? 0 : Br/Ar"
+  expr1 "isnan(Bg/Ag) ? 0 : Bg/Ag"
+  expr2 "isnan(Bb/Ab) ? 0 : Bb/Ab"
+  name MergeDivideReverse
+  xpos 361
+  ypos 82
+ }
+ Expression {
+  expr0 r<=parent.ratio_boundary.r?0:1
+  expr1 g<=parent.ratio_boundary.g?0:1
+  expr2 b<=parent.ratio_boundary.b?0:1
+  expr3 r<=parent.ratio_boundary.r?g<=parent.ratio_boundary.g?b<=parent.ratio_boundary.b?0:1:1:1
+  name Expression4
+  xpos 361
+  ypos 113
+ }
+push $N9ed2a380
+ Expression {
+  temp_name0 scale
+  temp_expr0 max(r,g,b)
+  expr0 r/scale
+  expr1 g/scale
+  expr2 b/scale
+  name Expression2
+  xpos 132
+  ypos 53
+ }
+ Expression {
+  expr0 r>=(1-parent.ratio_boundary.r)?0:1
+  expr1 g>=(1-parent.ratio_boundary.g)?0:1
+  expr2 b>=(1-parent.ratio_boundary.b)?0:1
+  expr3 r>=(1-parent.ratio_boundary.r)?g>=(1-parent.ratio_boundary.g)?b>=(1-parent.ratio_boundary.b)?0:1:1:1
+  name Expression3
+  selected true
+  xpos 132
+  ypos 85
+ }
+push $N9ed2a700
+ Expression {
+  expr0 r<=parent.mask_threshold.r?1:0
+  expr1 g<=parent.mask_threshold.g?1:0
+  expr2 b<=parent.mask_threshold.b?1:0
+  expr3 r<=parent.mask_threshold.r?1:g<=parent.mask_threshold.g?1:b<=parent.mask_threshold.b?1:0
+  name Expression1
+  xpos 0
+  ypos 75
+ }
+ Switch {
+  inputs 3
+  which {{parent.mask_method}}
+  name MaskSelection
+  xpos 0
+  ypos 113
+ }
+ Invert {
+  channels alpha
+  name Invert1
+  xpos 0
+  ypos 152
+  disable {{!parent.reverse}}
+ }
+ Dot {
+  name Dot3
+  xpos 34
+  ypos 211
+ }
+set Nb1d7a380 [stack 0]
+push $Nb1d57500
+ Dot {
+  name Dot6
+  xpos 498
+  ypos 8
+ }
+set Nb1d7a000 [stack 0]
+ ShuffleCopy {
+  inputs 2
+  name ShuffleCopy1
+  xpos 464
+  ypos 207
+ }
+push $Nb1d7a000
+ Dot {
+  name Dot1
+  xpos 622
+  ypos 8
+ }
+ ColorMatrix {
+  matrix {
+      {{parent.sat_weights.r} {parent.sat_weights.g} {parent.sat_weights.b}}
+      {{parent.sat_weights.r} {parent.sat_weights.g} {parent.sat_weights.b}}
+      {{parent.sat_weights.r} {parent.sat_weights.g} {parent.sat_weights.b}}
+    }
+  name DesaturationMatrix1
+  xpos 588
+  ypos 123
+ }
+ Merge2 {
+  inputs 2
+  operation matte
+  name Merge2
+  xpos 588
+  ypos 207
+ }
+push $Nb1d7a380
+push $N9ed2a700
+ Dot {
+  name Dot7
+  xpos -145
+  ypos 8
+ }
+ Merge2 {
+  inputs 2
+  operation mask
+  name Merge1
+  xpos -179
+  ypos 207
+ }
+push $Nb1d7a380
+ Switch {
+  inputs 3
+  which {{parent.output_type x1 0.265}}
+  name OutputMode
+  xpos 1
+  ypos 325
+ }
+ Output {
+  name Output1
+  xpos 1
+  ypos 361
+ }
+end_group
+Viewer {
+ frame 1
+ frame_range 1-100
+ name Viewer1
+ xpos -40
+ ypos -10
+}
